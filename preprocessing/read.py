@@ -3,7 +3,7 @@ import pandas as pd
 
 def load_nc_file(file_path, varname):
     """Load a NetCDF file and return the dataset."""
-    ds = xr.open_dataset(file_path)
+    ds = xr.open_dataset(file_path, chunks={"time": 100})
     ds = ds.rio.write_crs("EPSG:27572") # Lambert Paris II
 
     if varname not in ds.data_vars:
