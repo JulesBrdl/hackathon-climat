@@ -1,5 +1,12 @@
 import xarray as xr
 import pandas as pd
+import numpy as np
+
+import geopandas as gpd
+from shapely.geometry import Point
+from datetime import datetime
+
+# TODO change to EPSG:2154
 
 def load_nc_file(file_path, varname):
     """Load a NetCDF file and return the dataset."""
@@ -12,6 +19,10 @@ def load_nc_file(file_path, varname):
 
     return var
 
+def concat_datasets(ds1,ds2):
+    """Concat two xarray datasets along the time dimension."""
+    return xr.concat([ds1, ds2], dim="time")
+
 
 def merge_datasets(ds_list):
     """Merge two xarray datasets along the time dimension."""
@@ -20,7 +31,7 @@ def merge_datasets(ds_list):
     return xr.Dataset({**{base_name: base}, **{name: data.rio.reproject_match(base) for data, name in ds_list[1:]}})
     
  
-def read_nc_files(file_list):
+def read_nc_files(file_list, start_date = np.datetime64('2005-01-01')):
     """
     Read NetCDF files from the specified directory and return merged dataset.
 
@@ -41,6 +52,7 @@ def read_nc_files(file_list):
         dslist.append((load_nc_file(file_path, varname), varname))
 
     ds = merge_datasets(dslist)
+    ds = ds.sel(time=slice(start_date, None))
 
     return ds
 
@@ -53,12 +65,48 @@ def read_labels(file_path):
         file_path (str): Path to the CSV file.
 
     Returns:
-        pandas.DataFrame: DataFrame containing the labels.
+        geopandas.GeoDataFrame: GeoDataFrame containing the labels with geometry.
     """
     df = pd.read_csv(file_path)
+    geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
+    gdf = gpd.GeoDataFrame(df, geometry=geometry).set_crs("EPSG:4326")  # WGS84
+    gdf["Date"] = gdf["Date de première alerte"].apply(lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M:%S"))
+    gdf["Date"] = gdf["Date"].dt.date
+
+    return gdf.to_crs("EPSG:27572")  # Convert to Lambert Paris II
+
+
+def align_data(ds, gdf_labels):
+    # iteratively create mask per time step
+    masked_slices = []
+    for t in ds.time:
+        current_date = pd.to_datetime(t.values).date()
+        
+        ds_slice = ds["prAdjust"].sel(time=t)
+        
+        daily_geom = gdf_labels[gdf_labels['Date'] == current_date]
+        
+        if not daily_geom.empty:
+            temp_ones = xr.ones_like(ds_slice, dtype=np.int8)
+            temp_ones = temp_ones.rio.write_crs("EPSG:27572")
+            
+            # TODO add buffer (with proper crs)
+            mask_slice = temp_ones.rio.clip(
+                daily_geom.geometry, 
+                all_touched=True, 
+                drop=False 
+            )
+            mask_slice = mask_slice.fillna(0)
+        else:
+            mask_slice = xr.zeros_like(ds_slice)
+
+        mask_slice = mask_slice.rio.write_crs("EPSG:27572")
+        masked_slices.append(mask_slice) 
     
-    return df
+    masks = xr.concat(masked_slices, dim="time")
+    masks.name = 'fire'
+    masks.attrs['long_name'] = 'Spatiotemporal Mask (1=Inside Geometry, 0=Outside/No Event)'
 
+    ds['fire'] = masks
 
-def align_data(ds, labels):
-    pass
+    return ds
