@@ -1,2 +1,4 @@
-data/*
-
+test
+data_perso/
+.vscode/
+__pycache__
