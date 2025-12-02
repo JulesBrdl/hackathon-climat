@@ -1,4 +1,4 @@
-test
+test*
 data_perso/
 .vscode/
-__pycache__
+__pycache__/
