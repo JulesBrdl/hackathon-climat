@@ -19,6 +19,10 @@ def load_nc_file(file_path, varname):
 
     return var
 
+def concat_datasets(ds1,ds2):
+    """Concat two xarray datasets along the time dimension."""
+    return xr.concat([ds1, ds2], dim="time")
+
 
 def merge_datasets(ds_list):
     """Merge two xarray datasets along the time dimension."""
@@ -106,3 +110,10 @@ def align_data(ds, gdf_labels):
     ds['fire'] = masks
 
     return ds
+
+def extract_pixel_timeseries(ds):
+    rawdf = ds.to_dataframe()
+    rawdf.dropna(axis=0, how='any', inplace=True)
+    rawdf.drop(columns=['lat', 'lon', 'spatial_ref', 'LambertParisII'], inplace=True)
+
+    return rawdf
