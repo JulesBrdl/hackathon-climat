@@ -1,4 +1,5 @@
 import xarray as xr
+import pandas as pd
 
 def load_nc_file(file_path, varname):
     """Load a NetCDF file and return the dataset."""
@@ -11,13 +12,14 @@ def load_nc_file(file_path, varname):
 
     return var
 
+
 def merge_datasets(ds_list):
     """Merge two xarray datasets along the time dimension."""
     base, base_name = ds_list[0]
 
     return xr.Dataset({**{base_name: base}, **{name: data.rio.reproject_match(base) for data, name in ds_list[1:]}})
     
-
+ 
 def read_nc_files(file_list):
     """
     Read NetCDF files from the specified directory and return merged dataset.
@@ -41,3 +43,22 @@ def read_nc_files(file_list):
     ds = merge_datasets(dslist)
 
     return ds
+
+
+def read_labels(file_path):
+    """
+    Read labels from a CSV file.
+
+    Args:
+        file_path (str): Path to the CSV file.
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the labels.
+    """
+    df = pd.read_csv(file_path)
+    
+    return df
+
+
+def align_data(ds, labels):
+    pass
