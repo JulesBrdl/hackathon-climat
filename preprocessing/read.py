@@ -112,8 +112,7 @@ def align_data(ds, gdf_labels):
     return ds
 
 def extract_pixel_timeseries(ds):
-    rawdf = ds.to_dataframe()
+    rawdf = ds.to_dataframe().drop(columns=['lat', 'lon', 'spatial_ref', 'LambertParisII'], errors='ignore')
     rawdf.dropna(axis=0, how='any', inplace=True)
-    rawdf.drop(columns=['lat', 'lon', 'spatial_ref', 'LambertParisII'], inplace=True)
 
     return rawdf
