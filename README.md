@@ -10,7 +10,7 @@ Les données utilisées incluent :
 - **Base de données des incendies historiques** (BDIFF) 
 
 Nous avons effectué un pré-traitement des données de température et de précipitations afin d’en extraire davantage d’informations et d’améliorer la qualité des prédictions.
-Cela inclut du feature engineering et du prprocesing des données pour rendre les modèles plus performants.
+Cela inclut du feature engineering et du preprocessing des données pour rendre les modèles plus performants.
 
 Nous avons ensuite entraîné un classificateur random forest qui prédit s'il y aura un incendie à un point et temps donné en utilisant le dataset que nous avons préparé et scikit-learn.
 
