@@ -12,20 +12,21 @@ from sklearn.ensemble import RandomForestClassifier
 
 name_for_this_training = "test" # doit etre sous ce format de string : "must_be_attached"
 
-path = '../data/'
+# path = '../data/'
 path_perso = '../data_perso/'
-data_full_file = 'raw_2004_2024.parquet'
+data_full_file = 'feature_engineering_V1_2004_2024.parquet'
 
-data = pd.read_parquet(os.path.join(path,data_full_file))
+data = pd.read_parquet(os.path.join(path_perso,data_full_file))
 
-cols = ['prAdjust', 'tasAdjust']
+cols = ['prAdjust', 'tasAdjust', 'prWeek', 'prMonth', 'tasWeekAverage',
+       'tasWeekMax', 'tasWeekMin', 'tasMonthAverage']
 target_col = 'fire'
 
 #### LOGS AND FILES :  
 date_str = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 logs_file = os.path.join(path_perso, "log_fire_classification.csv")
 rf_grid_search_results_file = os.path.join(path_perso,"gs_files", f"rf_grid_search_{name_for_this_training}_{date_str}.csv")
-rf_model_file = os.path.join(path_perso,"model_files", "fire_classification_rf.joblib")
+rf_model_file = os.path.join(path_perso,"model_files", f"fire_classification_rf_{name_for_this_training}_{date_str}.joblib")
 
 ######################################## PARAMS MODEL RF ########################################
 
@@ -50,11 +51,9 @@ def split_train_test_data(cols, target_col, df):
     # Sample 80% of the zero-rows to DROP we have way too much data
     zeros_to_keep = zeros.sample(frac=0.20) # , random_state=42
 
-    # Recombine
     df_balanced = pd.concat([zeros_to_keep, ones], axis=0).sample(frac=1) # , random_state=42
     df_balanced.index = df_balanced.index.set_levels(pd.to_datetime(df_balanced.index.levels[0]),level=0)
 
-    # Extract the time index for filtering
     time_index = df_balanced.index.get_level_values("time")
 
     # Train: 
