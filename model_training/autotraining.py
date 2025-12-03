@@ -32,11 +32,11 @@ rf_model_file = os.path.join(path_perso,"model_files", f"fire_classification_rf_
 
 #### GRID ####
 GRID_RF = {
-    'n_estimators': [20],  #100, 500, 1000, 1500
-    'max_features': ["sqrt"], # "log2","sqrt"
-    'max_depth': [2],  # 35,50,100, None
-    'min_samples_leaf': [10], # 3,10,15,20
-    'min_samples_split' : [20], # 2,10,20,30
+    'n_estimators': [150,300],  #100, 500, 1000, 1500
+    'max_features': [None], # "log2","sqrt"
+    'max_depth': [5,10],  # 35,50,100, None
+    'min_samples_leaf': [2], # 3,10,15,20
+    'min_samples_split' : [5], # 2,10,20,30
     'class_weight': ["balanced"]
 }
 

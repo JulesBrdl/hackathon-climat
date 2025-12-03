@@ -44,4 +44,4 @@ if not os.path.exists("./data/feature_engineering_V1_2025_2050.parquet"):
     print(df2.columns.tolist()) 
     print(df2.head(25))
 
-    df2.to_parquet("data/feature_engineering_V1_2025_2050.parquet")
+    df2.to_parquet("data/feature_engineering_V1_2025_2050.parquet") 
